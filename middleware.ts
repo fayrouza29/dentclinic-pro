@@ -1,87 +1,87 @@
 import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
 
-/** Interface dentiste (PC) : tout le back-office. */
-const dentistPrefixes = ["/dashboard", "/patients", "/actes", "/paiements", "/rendez-vous"]
+export async function middleware(req: NextRequest) {
+  let res = NextResponse.next({ request: req })
 
-function isDentistRoute(pathname: string) {
-  return dentistPrefixes.some((p) => pathname === p || pathname.startsWith(`${p}/`))
-}
-
-/** Espace patient mobile (hors /patient/login). */
-function isPatientAppRoute(pathname: string) {
-  if (pathname === "/patient/login") return false
-  return pathname === "/patient" || pathname.startsWith("/patient/")
-}
-
-export async function middleware(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request })
-
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim()
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim()
-
-  if (!url || !key) {
-    if (isDentistRoute(request.nextUrl.pathname)) {
-      const login = new URL("/login", request.url)
-      login.searchParams.set("error", "config")
-      return NextResponse.redirect(login)
+  try {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim()
+    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim()
+    if (!url || !key) {
+      return res
     }
-    return supabaseResponse
-  }
 
-  const supabase = createServerClient(url, key, {
-    cookies: {
-      getAll() {
-        return request.cookies.getAll()
+    const supabase = createServerClient(url, key, {
+      cookies: {
+        getAll() {
+          return req.cookies.getAll()
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) => {
+            req.cookies.set(name, value)
+          })
+          res = NextResponse.next({ request: req })
+          cookiesToSet.forEach(({ name, value, options }) => {
+            res.cookies.set(name, value, options)
+          })
+        },
       },
-      setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value }) => {
-          request.cookies.set(name, value)
-        })
-        supabaseResponse = NextResponse.next({ request })
-        cookiesToSet.forEach(({ name, value, options }) => {
-          supabaseResponse.cookies.set(name, value, options)
-        })
-      },
-    },
-  })
+    })
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+    const pathname = req.nextUrl.pathname
 
-  const pathname = request.nextUrl.pathname
-  const role = user?.user_metadata?.role as string | undefined
-
-  // Dentiste → /login si non connecté ; un compte patient ne doit pas utiliser le back-office
-  if (isDentistRoute(pathname)) {
-    if (!user) {
-      const redirectUrl = new URL("/login", request.url)
-      redirectUrl.searchParams.set("next", pathname)
-      return NextResponse.redirect(redirectUrl)
+    // Routes publiques - laisser passer
+    if (
+      pathname === "/login" ||
+      pathname === "/patient/login" ||
+      pathname === "/" ||
+      pathname.startsWith("/_next") ||
+      pathname.startsWith("/api") ||
+      pathname.startsWith("/static") ||
+      pathname.includes(".")
+    ) {
+      return res
     }
-    if (role === "patient") {
-      return NextResponse.redirect(new URL("/patient/dashboard", request.url))
+
+    // Pas de session → redirect login
+    if (!session) {
+      if (pathname.startsWith("/patient")) {
+        return NextResponse.redirect(new URL("/patient/login", req.url))
+      }
+      return NextResponse.redirect(new URL("/login", req.url))
     }
+
+    const role = session.user.user_metadata?.role
+
+    // Patient sur routes dentiste → redirect patient
+    if (
+      (pathname.startsWith("/dashboard") ||
+        pathname.startsWith("/patients") ||
+        pathname.startsWith("/rendez-vous")) &&
+      role === "patient"
+    ) {
+      return NextResponse.redirect(new URL("/patient/dashboard", req.url))
+    }
+
+    // Dentiste sur routes patient → redirect dashboard
+    if (
+      pathname.startsWith("/patient/") &&
+      pathname !== "/patient/login" &&
+      role === "dentiste"
+    ) {
+      return NextResponse.redirect(new URL("/dashboard", req.url))
+    }
+
+    return res
+  } catch (error) {
+    console.error("Middleware error:", error)
+    return res
   }
-
-  // Patient → /patient/login si non connecté ; dentiste (ou autre rôle) → espace dentiste
-  if (isPatientAppRoute(pathname)) {
-    if (!user) {
-      const login = new URL("/patient/login", request.url)
-      login.searchParams.set("next", pathname)
-      return NextResponse.redirect(login)
-    }
-    if (role !== "patient") {
-      return NextResponse.redirect(new URL("/dashboard", request.url))
-    }
-  }
-
-  return supabaseResponse
 }
 
 export const config = {
-  matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
-  ],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\..*|api).*)"],
 }
