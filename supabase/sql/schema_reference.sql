@@ -1,0 +1,2 @@
+-- Schéma et exemple de politiques : voir ../schema.sql
+-- Base réinitialisée : appliquer ce fichier depuis le SQL Editor Supabase si besoin.

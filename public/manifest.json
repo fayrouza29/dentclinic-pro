@@ -1,0 +1,17 @@
+{
+  "name": "DentClinic Pro - Clini Drel Mofti",
+  "short_name": "DentClinic",
+  "description": "Votre espace patient - Clini Drel Mofti Jamel Eddine",
+  "start_url": "/patient/login",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0EA5E9",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

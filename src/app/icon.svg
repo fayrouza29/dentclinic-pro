@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="dentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0EA5E9" />
+      <stop offset="100%" stop-color="#06B6D4" />
+    </linearGradient>
+  </defs>
+  <path
+    d="M20 15 C20 15, 15 10, 25 8 C32 6, 38 12, 50 12 C62 12, 68 6, 75 8 C85 10, 80 15, 80 15 C85 25, 82 35, 78 45 C74 55, 72 60, 68 70 C65 78, 62 88, 58 92 C55 96, 52 96, 50 92 C48 96, 45 96, 42 92 C38 88, 35 78, 32 70 C28 60, 26 55, 22 45 C18 35, 15 25, 20 15 Z"
+    fill="url(#dentGrad)"
+  />
+  <path d="M44 42 L44 58 M37 50 L57 50" stroke="white" stroke-width="4" stroke-linecap="round" opacity="0.9" />
+</svg>
