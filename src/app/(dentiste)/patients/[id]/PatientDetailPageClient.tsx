@@ -682,7 +682,6 @@ export default function PatientDetailPageClient() {
       const waUrl = genererLienWhatsAppAccesPatient(
         patient.telephone,
         patient.prenom,
-        absolutePatientLoginUrl,
         email,
         password,
       )
@@ -914,7 +913,6 @@ export default function PatientDetailPageClient() {
                 href={genererLienWhatsAppAccesPatient(
                   patient.telephone,
                   patient.prenom,
-                  absolutePatientLoginUrl,
                   patient.email ?? "—",
                   patient.mot_de_passe_temp ?? "—",
                 )}
@@ -1771,7 +1769,6 @@ export default function PatientDetailPageClient() {
                 className="min-h-[180px] resize-none font-mono text-xs"
                 value={messageAccesPatientMobile(
                   patient.prenom,
-                  absolutePatientLoginUrl,
                   accessEmail.trim() || patient.email || "email@exemple.tn",
                   accessPassword || "••••••••",
                 )}

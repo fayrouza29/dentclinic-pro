@@ -150,7 +150,7 @@ function genererRappelWhatsApp(patient: PatientSearch, rdv: RdvRow) {
   const d = new Date(rdv.date_rdv)
   const date = d.toLocaleDateString("fr-TN", { weekday: "long", day: "numeric", month: "long" })
   const heure = d.toLocaleTimeString("fr-TN", { hour: "2-digit", minute: "2-digit" })
-  const message = `Bonjour ${patient.prenom} ${patient.nom},\n\nRappel de votre rendez-vous :\n📅 ${date}\n⏰ ${heure}\n\nMerci de confirmer votre présence.\n\nCabinet Dentaire ${CABINET.nom}\n📞 ${CABINET.telephone}`
+  const message = `Bonjour ${patient.prenom} ${patient.nom},\n\nRappel de votre rendez-vous :\n📅 ${date}\n⏰ ${heure}\n\nMerci de confirmer votre présence.\n\n${CABINET.nom}\n📞 ${CABINET.telephone}`
   return `https://wa.me/${numero}?text=${encodeURIComponent(message)}`
 }
 
